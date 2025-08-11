@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Random Number Game</title>
+  <style>
+    :root{
+      --bg: #0b0b0f;
+      --card: #111217;
+      --muted: #9aa4b2;
+      --accent: #6c63ff;
+      --accent-2: #61dbfb;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --glass: rgba(255,255,255,0.03);
+      --radius: 14px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{
+      height:100%;
+      margin:0;
+      font-family: Inter, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg,var(--bg) 0%, #05050a 100%);
+      color:#e6eef6;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    /* Page layout */
+    .wrap{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:28px;
+    }
+
+    .game {
+      width:100%;
+      max-width:980px;
+      display:grid;
+      grid-template-columns: 1fr 360px;
+      gap:24px;
+      align-items:start;
+    }
+
+    /* Left: game area */
+    .panel {
+      background: linear-gradient(180deg,var(--card), #0f1216);
+      border-radius:var(--radius);
+      padding:22px;
+      box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .title {
+      display:flex;
+      align-items:center;
+      gap:14px;
+      margin:0 0 10px 0;
+    }
+    .logo-dot{
+      width:56px;height:56px;border-radius:12px;
+      display:inline-grid;place-items:center;
+      background: linear-gradient(135deg,var(--accent),var(--accent-2));
+      font-weight:700;font-size:20px;color:#061023;
+      box-shadow: 0 6px 18px rgba(108,99,255,0.16);
+    }
+    h1{font-size:28px;margin:0}
+    p.lead{color:var(--muted);margin:6px 0 18px 0;font-size:14px}
+
+    /* small controls row */
+    .controls{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      margin-bottom:16px;
+      flex-wrap:wrap;
+    }
+
+    input[type=number]{
+      appearance:none;
+      -moz-appearance:textfield;
+      padding:12px 14px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,0.04);
+      background:var(--glass);
+      color:inherit;
+      width:180px;
+      font-size:16px;
+      outline: none;
+      transition: box-shadow .18s ease, transform .12s ease;
+    }
+    input[type=number]:focus{
+      box-shadow: 0 6px 18px rgba(97,219,251,0.08), inset 0 0 0 1px rgba(97,219,251,0.06);
+      transform: translateY(-1px);
+    }
+
+    .btn {
+      border: none;
+      padding:10px 14px;
+      border-radius:10px;
+      font-weight:600;
+      cursor:pointer;
+      background: linear-gradient(90deg,var(--accent),#7f78ff);
+      color:#021026;
+      box-shadow: 0 8px 20px rgba(108,99,255,0.12);
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .btn:active{ transform: translateY(1px) }
+    .btn.ghost{
+      background:transparent;
+      color:var(--accent-2);
+      border:1px solid rgba(97,219,251,0.12);
+      box-shadow:none;
+    }
+
+    /* result area */
+    .result {
+      margin-top:18px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+      padding:14px;
+      border-radius:10px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.015));
+      border:1px solid rgba(255,255,255,0.02);
+    }
+
+    .ans {
+      font-size:18px;
+      font-weight:700;
+      letter-spacing:0.2px;
+    }
+    .emoji {
+      font-size:28px;
+    }
+    .sub {
+      color:var(--muted);
+      font-size:13px;
+      margin-top:6px;
+    }
+
+    /* right side: info card */
+    .card {
+      background: linear-gradient(180deg,#0f1216, #0b0d12);
+      border-radius:var(--radius);
+      padding:18px;
+      border:1px solid rgba(255,255,255,0.02);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
+    .card h3{margin:0 0 8px 0}
+    ul{margin:10px 0 0 18px;color:var(--muted);font-size:14px}
+    .stat{
+      display:flex;justify-content:space-between;gap:8px;margin-top:12px;color:var(--muted);
+      font-size:14px;
+    }
+
+    /* small helpers */
+    .hint { font-size:13px;color:var(--muted);margin-top:8px }
+    .highlight { color:var(--accent-2);font-weight:700 }
+
+    /* animations */
+    .pulse {
+      animation: pulse 1.6s infinite;
+    }
+    @keyframes pulse { 0%{ transform:scale(1) } 50%{ transform:scale(1.02) } 100%{ transform:scale(1) } }
+
+    /* responsive */
+    @media (max-width:920px){
+      .game{ grid-template-columns: 1fr; }
+      .logo-dot{ width:48px;height:48px }
+      .panel{ padding:16px }
+      .card{ margin-top:14px }
+    }
+
+    @media (max-width:480px){
+      input[type=number]{ width:140px }
+      .controls{ gap:8px }
+      h1{ font-size:22px }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="game">
+      <!-- Game Panel -->
+      <section class="panel" aria-labelledby="title">
+        <div class="title">
+          <div class="logo-dot" aria-hidden="true">R</div>
+          <div>
+            <h1 id="title">Random Number Game</h1>
+            <p class="lead">Guess the number between <span class="highlight">1</span> and <span class="highlight">100</span>. Get hints: <em>just</em> means within 10, <em>too</em> means farther away.</p>
+          </div>
+        </div>
+
+        <div class="controls" role="region" aria-label="Controls">
+          <input id="guessInput" type="number" min="1" max="100" placeholder="Enter a number (1-100)" aria-label="Your guess" />
+          <button id="submitBtn" class="btn">Submit</button>
+          <button id="resetBtn" class="btn ghost" title="Start new game">Reset</button>
+          <div style="margin-left:auto;color:var(--muted);font-size:14px" id="attempts">Attempts: 0</div>
+        </div>
+
+        <div class="result" id="resultBox" aria-live="polite">
+          <div>
+            <div class="ans" id="ansText">Make a guess!</div>
+            <div class="sub" id="subText">Good luck — try to find it.</div>
+          </div>
+          <div style="margin-left:auto;text-align:right">
+            <div class="emoji" id="ansEmoji">❓</div>
+            <div class="sub" id="reveal" style="font-size:13px;color:var(--muted)">Number hidden</div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px">
+          <p class="hint">Tips:</p>
+          <ul>
+            <li>Type a number and press <strong>Submit</strong> or press <kbd>Enter</kbd> on your keyboard.</li>
+            <li><strong>Just</strong> = within 10; <strong>Too</strong> = farther away.</li>
+            <li>Press <strong>Reset</strong> to start a new random number at any time.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Info / Instructions -->
+      <aside class="card" aria-labelledby="instr">
+        <h3 id="instr">How it works</h3>
+        <p style="color:var(--muted);font-size:14px;margin:6px 0 0;">
+          A random number is chosen when the page loads. Each guess gives an immediate hint. Close guesses are rewarded — keep trying!
+        </p>
+
+        <div class="stat">
+          <div>Range</div>
+          <div><strong>1 – 100</strong></div>
+        </div>
+        <div class="stat">
+          <div>Current status</div>
+          <div id="statusLabel"><strong>Playing</strong></div>
+        </div>
+
+        <div style="margin-top:14px">
+          <h4 style="margin:6px 0">Rules</h4>
+          <ul>
+            <li>Guess between 1 and 100 (inclusive).</li>
+            <li>"Just" — your guess is within 10 of the target.</li>
+            <li>When you win, press Reset to play again.</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    // Game state
+    let secret = Math.floor(Math.random()*100) + 1;
+    let attempts = 0;
+    let finished = false;
+
+    const guessInput = document.getElementById('guessInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const resetBtn  = document.getElementById('resetBtn');
+    const ansText = document.getElementById('ansText');
+    const subText = document.getElementById('subText');
+    const ansEmoji = document.getElementById('ansEmoji');
+    const reveal = document.getElementById('reveal');
+    const attemptsEl = document.getElementById('attempts');
+    const statusLabel = document.getElementById('statusLabel');
+
+    function updateAttempts(){
+      attemptsEl.textContent = 'Attempts: ' + attempts;
+    }
+
+    function showResult(main, sub, emoji, revealNumber=false){
+      ansText.textContent = main;
+      subText.textContent = sub;
+      ansEmoji.textContent = emoji;
+      if(revealNumber){
+        reveal.innerHTML = '<strong>Number: ' + secret + '</strong>';
+      } else {
+        reveal.innerHTML = '<span style="color:var(--muted)">Number hidden</span>';
+      }
+    }
+
+    function evaluateGuess(){
+      if(finished) return;
+      const raw = guessInput.value;
+      const guess = Number(raw);
+
+      if(!raw || Number.isNaN(guess)){
+        showResult('Please enter a valid number','Type a number between 1 and 100','⚠️');
+        return;
+      }
+      if(guess < 1 || guess > 100){
+        showResult('Out of range','Enter a number between 1 and 100','🚫');
+        return;
+      }
+
+      attempts++;
+      updateAttempts();
+
+      if(guess === secret){
+        finished = true;
+        showResult('You won! 🎉','Perfect guess — well done!','🌟', true);
+        statusLabel.innerHTML = '<strong style="color:var(--success)">Won</strong>';
+        return;
+      }
+
+      const diff = Math.abs(guess - secret);
+      const isHigher = guess > secret;
+      // "just" = within 10; "too" = farther away
+      if(diff <= 10){
+        showResult(isHigher ? 'Just high — try a bit lower' : 'Just low — try a bit higher', 'Difference within 10','😊');
+      } else {
+        showResult(isHigher ? 'Too high — far off' : 'Too low — far off', 'Difference greater than 10','❌');
+      }
+      statusLabel.innerHTML = '<strong style="color:var(--muted)">Playing</strong>';
+    }
+
+    function resetGame(){
+      secret = Math.floor(Math.random()*100) + 1;
+      attempts = 0;
+      finished = false;
+      guessInput.value = '';
+      updateAttempts();
+      showResult('Make a guess!','Good luck — try to find it.','❓', false);
+      statusLabel.innerHTML = '<strong>Playing</strong>';
+      console.clear();
+      console.log('New secret (debug):', secret);
+    }
+
+    submitBtn.addEventListener('click', evaluateGuess);
+    resetBtn.addEventListener('click', resetGame);
+
+    // Enter key support
+    guessInput.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){
+        evaluateGuess();
+      }
+    });
+
+    // initial
+    updateAttempts();
+    console.log('Secret (debug):', secret);
+  </script>
+</body>
+</html>
