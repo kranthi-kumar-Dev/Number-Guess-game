@@ -6,7 +6,7 @@ Guess the hidden number between **1 and 100**, get hints on how close you are, a
 ---
 
 ## 🚀 Live Demo
-[Click here to play]([https://your-deployment-link-here](https://number-guess-game-j45pmh4ce-pacha-kranthi-kumars-projects.vercel.app/))
+[Click here to play](https://number-guess-game-j45pmh4ce-pacha-kranthi-kumars-projects.vercel.app/)
 
 ---
 
